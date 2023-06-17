@@ -1,0 +1,27 @@
+#!/bin/bash
+set -euo pipefail
+# arguments: url, timestamp -5 seconds, length of clip, video file name
+# original script by godofgrunts (https://unix.stackexchange.com/a/388148)
+
+if [ "$#" -ne 4 ]; then
+    echo "usage: ytclip url timestamp length_of_clip video_file_name"
+    echo "example: \"url\" 3:05 1:48 video.mp4"
+    exit 1
+fi
+
+readarray -t urls <<< "$(yt-dlp --youtube-skip-dash-manifest -g "$1")"
+
+ffmpeg \
+    -ss $2 \
+    -i "${urls[0]}" \
+    -ss $2 \
+    -i "${urls[1]}" \
+    -ss 5 \
+    -map 0:v \
+    -map 1:a \
+    -c:v libx264 \
+    -c:a aac \
+    -t $3 \
+    $4
+
+
